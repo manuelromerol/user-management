@@ -24,32 +24,33 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: 'npm'
-
       - name: Install dependencies
         run: npm install
-
       - name: Run Docker Container
-        # This pulls and runs the specific image provided in the challenge
         run: |
           docker pull ghcr.io/danielsilva-loanpro/sdet-interview-challenge:latest
           docker run -d -p 3000:3000 ghcr.io/danielsilva-loanpro/sdet-interview-challenge:latest
-
       - name: Wait for API to be ready
         # We wait for the container to finish booting up inside the runner
         run: npx wait-on http://localhost:3000/dev/users --timeout 30000
-
       - name: Run Playwright tests
         run: npm run test
         env:
           ENV: ${{ env.TARGET_ENV }}
           FORCE_COLOR: 0
-
+      - name: Publish ${{ env.TARGET_ENV }} Summary
+        if: always()
+        run: |
+          if [ -f reports/BUGS-${{ env.TARGET_ENV }}.md ]; then
+            cat reports/BUGS-${{ env.TARGET_ENV }}.md >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## ⚠️ ${{ env.TARGET_ENV }} Bug Report Not Found" >> $GITHUB_STEP_SUMMARY
+          fi
       - name: Upload Bug Report
         if: always()
         uses: actions/upload-artifact@v4
