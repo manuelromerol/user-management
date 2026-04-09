@@ -1,0 +1,22 @@
+{
+  "name": "user-management",
+  "version": "1.0.0",
+  "description": "API Test Automation Framework",
+  "main": "index.js",
+  "scripts": {
+    "test": "playwright test",
+    "test:dev": "ENV=dev playwright test",
+    "test:prod": "ENV=prod playwright test",
+    "report": "playwright show-report"
+  },
+  "keywords": [],
+  "author": "Manuel Romero",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@types/node": "^25.5.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}

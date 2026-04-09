@@ -1,0 +1,63 @@
+name: User Management API tests
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to run tests against'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - prod
+
+jobs:
+  test:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Docker Container
+        # This pulls and runs the specific image provided in the challenge
+        run: |
+          docker pull ghcr.io/danielsilva-loanpro/sdet-interview-challenge:latest
+          docker run -d -p 3000:3000 ghcr.io/danielsilva-loanpro/sdet-interview-challenge:latest
+
+      - name: Wait for API to be ready
+        # We wait for the container to finish booting up inside the runner
+        run: npx wait-on http://localhost:3000/dev/users --timeout 30000
+
+      - name: Run Playwright tests
+        run: npm run test
+        env:
+          ENV: ${{ github.event.inputs.environment || 'dev' }}
+          FORCE_COLOR: 0
+
+      - name: Upload Bug Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-bug-report
+          path: reports/BUGS.md
+
+      - name: Upload Playwright Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/

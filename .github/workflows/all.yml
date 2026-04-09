@@ -1,0 +1,60 @@
+name: Tests All Environments
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch: # Allows manual override
+
+jobs:
+  # STAGE 1: DEV ENVIRONMENT
+  test-dev:
+    name: "Run Tests: Dev"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - run: npm install
+      - name: Start Docker API
+        run: docker run -d -p 3000:3000 ghcr.io/danielsilva-loanpro/sdet-interview-challenge:latest
+      - name: Wait for API
+        run: npx wait-on http://localhost:3000/dev/users
+      - name: Execute Dev Tests
+        run: npm run test:dev
+        env:
+          ENV: dev
+      - name: Upload Dev Bug Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dev-bug-report
+          path: reports/all/BUGS-dev.md
+
+  # STAGE 2: PROD ENVIRONMENT
+  test-prod:
+    name: "Run Tests: Prod"
+    needs: test-dev # This ensures they run sequentially (Dev then Prod)
+    if: always()    # Runs even if Dev failed, so you get full coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - run: npm install
+      - name: Start Docker API
+        run: docker run -d -p 3000:3000 ghcr.io/danielsilva-loanpro/sdet-interview-challenge:latest
+      - name: Wait for API
+        run: npx wait-on http://localhost:3000/prod/users
+      - name: Execute Prod Tests
+        run: npm run test:prod
+        env:
+          ENV: prod
+      - name: Upload Prod Bug Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prod-bug-report
+          path: reports/all/BUGS-prod.md
