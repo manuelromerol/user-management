@@ -1,9 +1,9 @@
 name: User Management API tests
 on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+#  push:
+#    branches: [ main, master ]
+#  pull_request:
+#    branches: [ main, master ]
   workflow_dispatch:
     inputs:
       environment:

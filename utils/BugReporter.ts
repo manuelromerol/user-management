@@ -4,7 +4,7 @@ import * as path from 'path';
 
 class BugReporter implements Reporter {
     private envName = (process.env.ENV || 'local').toLowerCase();
-    private reportPath = path.join(process.cwd(), 'reports', 'BUGS.md');
+    private reportPath = path.join(process.cwd(), 'reports', `BUGS-${this.envName}.md`);
     private bugCounter = 1001;
 
     onBegin() {

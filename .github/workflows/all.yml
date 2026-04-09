@@ -1,9 +1,9 @@
 name: Tests All Environments
 on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+  #  push:
+  #    branches: [ main, master ]
+  #  pull_request:
+  #    branches: [ main, master ]
   workflow_dispatch: # Allows manual override
 
 jobs:
@@ -25,12 +25,20 @@ jobs:
         run: npm run test:dev
         env:
           ENV: dev
+      - name: Publish Dev Summary
+        if: always()
+        run: |
+          if [ -f reports/BUGS-dev.md ]; then
+            cat reports/BUGS-dev.md >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## ⚠️ Dev Bug Report Not Found" >> $GITHUB_STEP_SUMMARY
+          fi
       - name: Upload Dev Bug Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: dev-bug-report
-          path: reports/all/BUGS-dev.md
+          path: reports/BUGS-dev.md
 
   # STAGE 2: PROD ENVIRONMENT
   test-prod:
@@ -52,9 +60,17 @@ jobs:
         run: npm run test:prod
         env:
           ENV: prod
+      - name: Publish Prod Summary
+        if: always()
+        run: |
+          if [ -f reports/BUGS-prod.md ]; then
+            cat reports/BUGS-prod.md >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## ⚠️ Prod Bug Report Not Found" >> $GITHUB_STEP_SUMMARY
+          fi
       - name: Upload Prod Bug Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: prod-bug-report
-          path: reports/all/BUGS-prod.md
+          path: reports/BUGS-prod.md
