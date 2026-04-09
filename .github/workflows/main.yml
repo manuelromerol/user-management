@@ -19,6 +19,8 @@ jobs:
   test:
     timeout-minutes: 10
     runs-on: ubuntu-latest
+    env:
+      TARGET_ENV: ${{ github.event.inputs.environment }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -45,15 +47,15 @@ jobs:
       - name: Run Playwright tests
         run: npm run test
         env:
-          ENV: ${{ github.event.inputs.environment || 'dev' }}
+          ENV: ${{ env.TARGET_ENV }}
           FORCE_COLOR: 0
 
       - name: Upload Bug Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: api-bug-report
-          path: reports/BUGS.md
+          name: ${{ env.TARGET_ENV }}-bug-report
+          path: reports/BUGS-${{ env.TARGET_ENV }}.md
 
       - name: Upload Playwright Report
         if: always()
